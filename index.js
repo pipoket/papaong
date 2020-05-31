@@ -326,7 +326,8 @@ function play(guild, song) {
     const ytdlOptions = {
         quality: 'highestaudio',
         filter: 'audioonly',
-        highWaterMark: 1024 * 1024 * 3,
+        // https://github.com/fent/node-ytdl-core/issues/402
+        highWaterMark: 1<<25,
     }
     const dispatcher = queue.connection
         .play(ytdl(song.url, ytdlOptions))
