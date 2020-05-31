@@ -4,6 +4,7 @@ const client = new discord.Client()
 const prefix = process.env.BOT_PREFIX
 const ytdl = require("ytdl-core")
 const fetch = require("node-fetch")
+const hastebin = require('hastebin')
 
 const papaongStorage = require("./storage.js")
 const storage = new papaongStorage()
@@ -43,6 +44,8 @@ client.on('message', async message => {
         deleteSong(message)
     } else if (command === 'stop') {
         stop(message)
+    } else if (command === 'e' || command === 'export') {
+        exportSong(message)
     } else if (command === 'h' || command === 'help') {
         help(message)
     } else {
@@ -77,8 +80,8 @@ async function execute(message) {
         return
     }
 
-    if (songUrl.indexOf("://hastebin.com") > 0) {
-        let txtUrl = songUrl.replace("hastebin.com/", "hastebin.com/raw/")
+    if (songUrl.indexOf("://pastie.io") > 0) {
+        let txtUrl = songUrl.replace("pastie.io/", "pastie.io/raw/")
         const response = await fetch(txtUrl)
         const body = await response.text()
         let songList = body.split("\n")
@@ -87,8 +90,8 @@ async function execute(message) {
         let itemCounter = 0
         for (const itemUrl of songList) {
             itemCounter += 1
-            await addSong(message, itemUrl)
-            if (itemSong % 20 == 0) {
+            await addSong(message, itemUrl, atFirst=false, batchMode=true)
+            if (itemCounter % 20 === 0) {
                 await message.channel.send(
                     `**[알림]** (헤이스트-빈) ${itemCounter}/${songList.length} 번째 음악까지 처리완료했어옹`)
             }
@@ -274,6 +277,29 @@ function stop(message) {
         })
 }
 
+function exportSong(message) {
+    if (queue.songList.length === 0) {
+        return message.channel.send(`**[알림]** 백업할 노래가 없는 것이애옹`)
+    }
+
+    let songUrlList = [];
+    queue.songList.forEach((song) => {
+        songUrlList.push(`${song.url}`)
+    })
+    let songUrlText = songUrlList.join("\n")
+    hastebin.createPaste(songUrlText, {
+        raw: false,
+        contentType: 'text/plain',
+        server: 'https://pastie.io',
+    }, {})
+        .then((urlToPaste) => {
+            message.channel.send(`**[알림]** 노래 목록을 백업했어옹. 링크애옹: ${urlToPaste}`)
+        })
+        .catch((requestError) => {
+            message.channel.send(`**[알림]** 노래 목록을 백업에 실패했어옹.. 애옹애옹...`)
+        })
+}
+
 function play(guild, song) {
     if (!song) {
         queue.voiceChannel.leave()
@@ -308,11 +334,18 @@ function play(guild, song) {
     queue.textChannel.send(`**[알림]** ${song.username}님이 신청한 ${song.title}를 재생해옹`)
 }
 
-async function addSong(message, songUrl, atFirst=false) {
+async function addSong(message, songUrl, atFirst=false, batchMode=false) {
     let songId = songUrl.split("v=")[1]
+    if (!songId) {
+        message.channel.send(`**[오류]** URL 형식이 이상해옹 ${songUrl}`)
+        return false
+    }
+
     let oldSong = await storage.getSong(songId)
     if (oldSong) {
-        message.channel.send(`**[알림]** K 이미 추가되어있는 노래애옹: ${oldSong.title}`)
+        if (!batchMode) {
+            message.channel.send(`**[알림]** 이미 추가되어있는 노래애옹: ${oldSong.title}`)
+        }
         return false
     }
 
@@ -321,7 +354,7 @@ async function addSong(message, songUrl, atFirst=false) {
     } catch (err) {
         console.error(`Failed to fetch song information ${songUrl}`)
         console.error(err)
-        message.channel.send(`**[오류]** ${songUrl} 주소를 불러오는데 실패한 것이애옹. URL이 정확한지 확인해주새옹.`)
+        message.channel.send(`**[오류]** ${songUrl} 주소를 불러오는데 실패한 것이애옹. ${err}`)
         return false
     }
 
@@ -336,7 +369,9 @@ async function addSong(message, songUrl, atFirst=false) {
 
     let isNewSong = await storage.addSong(song)
     if (!isNewSong) {
-        message.channel.send(`**[알림]** 이미 추가되어있는 노래애옹: ${song.title}`)
+        if (!batchMode) {
+            message.channel.send(`**[알림]** 이미 추가되어있는 노래애옹: ${song.title}`)
+        }
         return false
     }
 
@@ -353,8 +388,8 @@ async function help(message) {
     let embed = new discord.MessageEmbed()
         .setTitle("명령어 목록이애옹")
         .setDescription(""
-            + "**;;p `유튜브/Hastebin 링크` 또는 ;;play `유튜브/Hastebin 링크`**\n"
-            + "유튜브 음악 또는 Hastebin 목록을 추가해옹\n\n"
+            + "**;;p `유튜브/Pastie 링크` 또는 ;;play `유튜브/Pastie 링크`**\n"
+            + "유튜브 음악 또는 Pastie 목록을 추가해옹\n\n"
             + "**;;l 또는 ;;list**\n"
             + "파파옹이가 가지고 있는 재생 목록을 표시해옹\n\n"
             + "**;;j 또는 ;;join**\n"
@@ -370,6 +405,8 @@ async function help(message) {
             + "(재생목록 맨 처음 음악은 지우지 못해옹. 먼저 건너뛰어주새옹)\n\n"
             + "**;;stop**\n"
             + "파파옹이의 노래 재생을 멈춰옹\n\n"
+            + "**;;export**\n"
+            + "파파옹이가 가지고 있는 재생 목록을 Pastie 으로 백업해옹\n\n"
             + "**;;h 또는 ;;help**\n"
             + "이 도움말을 표시해옹")
     message.channel.send(embed)
