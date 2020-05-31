@@ -112,7 +112,8 @@ async function execute(message) {
         await message.channel.send(
             `**[알림]** (헤이스트-빈) ${itemCounter}/${songList.length} 번째 음악까지 처리완료했어옹`)
     } else {
-        if (await addSong(message, songUrl)) {
+        let song = await addSong(message, songUrl)
+        if (song) {
             await message.channel.send(`**[알림]** 새로운 노래애옹: ${song.title}`)
         }
     }
@@ -402,6 +403,7 @@ async function addSong(message, songUrl, atFirst=false, batchMode=false) {
     }
 
     await storage.addSongList(queue.songList)
+    return song
 }
 
 async function leaveGuild(message) {
