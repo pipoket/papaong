@@ -312,7 +312,8 @@ function play(guild, song) {
     queue.playing = true
     const ytdlOptions = {
         quality: 'highestaudio',
-        filter: 'audioonly'
+        filter: 'audioonly',
+        highWaterMark: 1024 * 1024 * 3,
     }
     const dispatcher = queue.connection
         .play(ytdl(song.url, ytdlOptions))
