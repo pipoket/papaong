@@ -25,7 +25,7 @@ client.on('message', async message => {
     if (!message.content.startsWith(prefix)) return
 
     let command = message.content.slice(2).split(" ")[0]
-    if (command === 'p') {
+    if (command === 'p' || command === 'play') {
         await execute(message)
     } else if (command === 'l' || command === 'list') {
         list(message)
@@ -39,6 +39,8 @@ client.on('message', async message => {
         deleteSong(message)
     } else if (command === 'stop') {
         stop(message)
+    } else if (command === 'h' || command === 'help') {
+        help(message)
     } else {
         message.channel.send("**[오류]** 무슨 말인지 모르겠다옹")
     }
@@ -290,6 +292,30 @@ async function addSong(message, songUrl, atFirst=false) {
         queue.songList.push(song)
     }
     return song
+}
+
+async function help(message) {
+    let embed = new discord.MessageEmbed()
+        .setTitle("명령어 목록이애옹")
+        .setDescription(""
+            + "**;;p `유튜브/Hastebin 링크` 또는 ;;play `유튜브/Hastebin 링크`**\n"
+            + "유튜브 음악 또는 Hastebin 목록을 추가해옹\n\n"
+            + "**;;l 또는 ;;list**\n"
+            + "파파옹이가 가지고 있는 재생 목록을 표시해옹\n\n"
+            + "**;;j 또는 ;;join**\n"
+            + "파파옹이를 지금 참가 중인 음성채널에 초대해옹\n\n"
+            + "**;;leave**\n"
+            + "파파옹이를 지금 참가 중인 음성채널에서 쫓아내옹 ㅠㅠ.. 애옹애옹..\n\n"
+            + "**;;s 또는 ;;skip**\n"
+            + "파파옹이가 지금 재생 중인 음악을 건너뛰게 해옹\n(건너뛰어도 음악은 사라지지 않아옹!)\n\n"
+            + "**;;d `삭제할 음악 번호` 또는 ;;delete `삭제할 음악 번호`**\n"
+            + "파파옹이가 가지고 있는 재생 목록에서 음악을 삭제해옹\n"
+            + "(지금 재생 중인 음악은 지우지 못해옹. 먼저 건너뛰어주새옹)\n\n"
+            + "**;;stop**\n"
+            + "파파옹이의 노래 재생을 멈춰옹\n\n"
+            + "**;;h 또는 ;;help**\n"
+            + "이 도움말을 표시해옹");
+    message.channel.send(embed);
 }
 
 storage.initialize()
