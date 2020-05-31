@@ -2,6 +2,7 @@ require('dotenv').config()
 const discord = require('discord.js')
 const client = new discord.Client()
 const prefix = process.env.BOT_PREFIX
+const guildWhitelist = process.env.ALLOWED_GUILD_ID.split(",")
 const ytdl = require("ytdl-core")
 const fetch = require("node-fetch")
 const hastebin = require('hastebin')
@@ -23,6 +24,16 @@ const queue = {
 client.on('ready', () => {
     console.info(`Logged in as ${client.user.tag}`)
 })
+
+client.on("guildCreate", async (guild) => {
+    if (guildWhitelist.includes(guild.id)) {
+        console.log(`Joined a new guild: ${guild.name}`)
+    } else {
+        console.log(`Leave the unallowed guild: ${guild.name}`)
+        await guild.leave()
+    }
+})
+
 client.on('message', async message => {
     if (message.author.bot) return
     if (!message.content.startsWith(prefix)) return
@@ -48,6 +59,8 @@ client.on('message', async message => {
         exportSong(message)
     } else if (command === 'h' || command === 'help') {
         help(message)
+    } else if (command === 'destroyLeave!') {
+        leaveGuild(message);
     } else {
         message.channel.send("**[오류]** 무슨 말인지 모르겠다옹")
     }
@@ -383,6 +396,10 @@ async function addSong(message, songUrl, atFirst=false, batchMode=false) {
     }
 
     await storage.addSongList(queue.songList)
+}
+
+async function leaveGuild(message) {
+    message.guild.leave()
 }
 
 async function help(message) {
