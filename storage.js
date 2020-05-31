@@ -7,6 +7,9 @@ class PapaongStorage {
 
     async getAllSong() {
         let songList = await storage.values()
+        songList.sort((lhs, rhs) => {
+            return lhs.order - rhs.order
+        })
         return songList
     }
 
@@ -26,6 +29,7 @@ class PapaongStorage {
             userid: songObj.userid,
             username: songObj.username,
             url: songObj.url,
+            order: songObj.order,
         })
         return true
     }
@@ -38,6 +42,17 @@ class PapaongStorage {
 
         await storage.removeItem(songObj.id)
         return true
+    }
+
+    async addSongList(songList) {
+        await storage.clear()
+
+        let order = 0
+        for (const song of songList) {
+            order += 1
+            song.order = order
+            await this.addSong(song)
+        }
     }
 }
 
