@@ -64,25 +64,25 @@ client.on('message', async message => {
     if (!message.content.startsWith(prefix)) return
 
     let command = message.content.slice(2).split(" ")[0]
-    if (command === 'p' || command === 'play') {
+    if (command === 'ㅔ' || command === 'p' || command === 'play') {
         await execute(message)
-    } else if (command === 'l' || command === 'list') {
+    } else if (command === 'ㅣ' || command === 'l' || command === 'list') {
         list(message)
-    } else if (command === 'j' || command === 'join') {
+    } else if (command === 'ㅓ' || command === 'j' || command === 'join') {
         join(message)
     } else if (command === 'leave') {
         leave(message)
-    } else if (command === 's' || command === 'skip') {
+    } else if (command === 'ㄴ' || command === 's' || command === 'skip') {
         skip(message)
     } else if (command === 'shuffle') {
         await shuffle(message)
-    } else if (command === 'd' || command === 'delete') {
+    } else if (command === 'ㅇ' || command === 'd' || command === 'delete') {
         deleteSong(message)
     } else if (command === 'stop') {
         stop(message)
-    } else if (command === 'e' || command === 'export') {
+    } else if (command === 'ㄷ' || command === 'e' || command === 'export') {
         exportSong(message)
-    } else if (command === 'h' || command === 'help') {
+    } else if (command === 'ㅗ' || command === 'h' || command === 'help') {
         help(message)
     } else if (command === 'destroyLeave!') {
         leaveGuild(message);
@@ -376,7 +376,7 @@ function play(guild, song) {
             play(guild, queue.songList[0])
         })
     dispatcher.setVolumeLogarithmic(queue.volume / 5)
-    queue.textChannel.send(`**[알림]** ${song.username}님이 신청한 ${song.title}를 재생해옹`)
+    queue.textChannel.send(`**[알림]** 이번 곡은 **${song.title}** 이에옹 (신청자: ${song.username})`)
 }
 
 async function addSong(message, songUrl, atFirst=false, batchMode=false) {
