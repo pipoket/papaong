@@ -34,6 +34,31 @@ client.on("guildCreate", async (guild) => {
     }
 })
 
+client.on('voiceStateUpdate', (oldMember, newMember) => {
+    if (queue.connection === null) {
+        return
+    }
+
+    let newUserChannel = newMember.channel
+    let botUserChannel = queue.voiceChannel
+
+    if (botUserChannel.members.size <= 1) {
+        queue.textChannel.send(`**[알림]** 아무도 없네옹. 파파옹이도 음악을 멈추고 쉬러갈게옹!`)
+        _stop()
+    } else {
+        if (queue.playing) {
+            return
+        }
+
+        if (queue.songList.length > 0) {
+            queue.textChannel.send(`**[알림]** 어서오세옹. 음악을 재생할게옹!`)
+            play(queue.voiceChannel.guild, queue.songList[0])
+        } else {
+            queue.textChannel.send(`**[알림]** 어서오세옹. 근데 재생할 음악이 없네옹.. 애옹애옹..`)
+        }
+    }
+})
+
 client.on('message', async message => {
     if (message.author.bot) return
     if (!message.content.startsWith(prefix)) return
@@ -99,18 +124,18 @@ async function execute(message) {
         const body = await response.text()
         let songList = body.split("\n")
 
-        message.channel.send(`**[알림]** (헤이스트-빈) 총 ${songList.length}개의 노래를 추가할 것이애옹`)
+        message.channel.send(`**[알림]** (pastie) 총 ${songList.length}개의 노래를 추가할 것이애옹`)
         let itemCounter = 0
         for (const itemUrl of songList) {
             itemCounter += 1
             await addSong(message, itemUrl, atFirst=false, batchMode=true)
             if (itemCounter % 20 === 0) {
                 await message.channel.send(
-                    `**[알림]** (헤이스트-빈) ${itemCounter}/${songList.length} 번째 음악까지 처리완료했어옹`)
+                    `**[알림]** (pastie) ${itemCounter}/${songList.length} 번째 음악까지 처리완료했어옹`)
             }
         }
         await message.channel.send(
-            `**[알림]** (헤이스트-빈) ${itemCounter}/${songList.length} 번째 음악까지 처리완료했어옹`)
+            `**[알림]** (pastie) ${itemCounter}/${songList.length} 번째 음악까지 처리완료했어옹`)
     } else {
         let song = await addSong(message, songUrl)
         if (song) {
@@ -278,8 +303,12 @@ function deleteSong(message) {
 
 function stop(message) {
     if (!message.member.voice.channel) {
-        return message.channel.send("**[알림]** 음성 채널에 들어와야 노래를 건너뛸 수 있는 것이애옹")
+        return message.channel.send("**[알림]** 음성 채널에 들어와야 노래를 멈출 수 있는 것이애옹")
     }
+    _stop()
+}
+
+function _stop() {
     queue.songList = []
     queue.playing = false
     storage.getAllSong()
