@@ -350,7 +350,12 @@ function play(guild, song) {
 }
 
 async function addSong(message, songUrl, atFirst=false, batchMode=false) {
-    let songId = songUrl.split("v=")[1]
+    let songId = null
+    if (songUrl.indexOf("v=") > 0) {
+        songId = songUrl.split("v=")[1]
+    } else if (songUrl.indexOf("https://youtu.be/") >= 0) {
+        songId = songUrl.split("https://youtu.be/")[1]
+    }
     if (!songId) {
         message.channel.send(`**[오류]** URL 형식이 이상해옹 ${songUrl}`)
         return false
