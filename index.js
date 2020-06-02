@@ -97,7 +97,7 @@ client.on('message', async message => {
     } else if (command === 'destroyLeave!') {
         leaveGuild(message);
     } else {
-        message.channel.send("**[오류]** 무슨 말인지 모르겠다옹")
+        //message.channel.send("**[오류]** 무슨 말인지 모르겠다옹")
     }
 })
 
