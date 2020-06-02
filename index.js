@@ -4,6 +4,7 @@ const client = new discord.Client()
 const prefix = process.env.BOT_PREFIX
 const guildWhitelist = process.env.ALLOWED_GUILD_ID.split(",")
 const ytdl = require("ytdl-core")
+const ytdlDiscord = require("ytdl-core-discord")
 const fetch = require("node-fetch")
 const hastebin = require('hastebin')
 
@@ -34,7 +35,7 @@ client.on("guildCreate", async (guild) => {
     }
 })
 
-client.on('voiceStateUpdate', (oldMember, newMember) => {
+client.on('voiceStateUpdate', async (oldMember, newMember) => {
     if (queue.connection === null) {
         return
     }
@@ -48,7 +49,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
     }
 
     if (botUserChannel.members.size <= 1) {
-        queue.textChannel.send(`**[알림]** 아무도 없네옹. 파파옹이도 음악을 멈추고 쉬러갈게옹!`)
+        await queue.textChannel.send(`**[알림]** 아무도 없네옹. 파파옹이도 음악을 멈추고 쉬러갈게옹!`)
         _stop()
     } else {
         if (queue.playing) {
@@ -56,10 +57,10 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
         }
 
         if (queue.songList.length > 0) {
-            queue.textChannel.send(`**[알림]** 어서오세옹. 음악을 재생할게옹!`)
-            play(queue.voiceChannel.guild, queue.songList[0])
+            await queue.textChannel.send(`**[알림]** 어서오세옹. 음악을 재생할게옹!`)
+            await play(queue.voiceChannel.guild, queue.songList[0])
         } else {
-            queue.textChannel.send(`**[알림]** 어서오세옹. 근데 재생할 음악이 없네옹.. 애옹애옹..`)
+            await queue.textChannel.send(`**[알림]** 어서오세옹. 근데 재생할 음악이 없네옹.. 애옹애옹..`)
         }
     }
 })
@@ -123,7 +124,7 @@ async function execute(message) {
         if (queue.playing) {
             message.channel.send(`**[알림]** 이미 음악을 재생하고 있는 중이애옹`)
         } else {
-            play(message.guild, queue.songList[0])
+            await play(message.guild, queue.songList[0])
         }
         return
     }
@@ -154,7 +155,7 @@ async function execute(message) {
     }
 
     if (!queue.playing) {
-        play(message.guild, queue.songList[0])
+        await play(message.guild, queue.songList[0])
     }
 }
 
@@ -353,7 +354,7 @@ function exportSong(message) {
         })
 }
 
-function play(guild, song) {
+async function play(guild, song) {
     if (!song) {
         queue.voiceChannel.leave()
         queue.voiceChannel = null
@@ -363,27 +364,21 @@ function play(guild, song) {
     }
 
     queue.playing = true
-    const ytdlOptions = {
-        quality: 'highestaudio',
-        filter: 'audioonly',
-        // https://github.com/fent/node-ytdl-core/issues/402
-        highWaterMark: 1<<25,
-    }
     const dispatcher = queue.connection
-        .play(ytdl(song.url, ytdlOptions))
+        .play(await ytdlDiscord(song.url), {type: 'opus', highWaterMark: 100})
         .on("finish", () => {
             if (queue.playing) {
                 queue.songList.push(queue.songList.shift())
                 storage.addSongList(queue.songList)
-                    .then(() => {
-                        play(guild, queue.songList[0])
+                    .then(async () => {
+                        await play(guild, queue.songList[0])
                     })
             }
         })
-        .on("error", error => {
+        .on("error", async error => {
             console.error(error)
             queue.songList.push(queue.songList.shift())
-            play(guild, queue.songList[0])
+            await play(guild, queue.songList[0])
         })
     dispatcher.setVolumeLogarithmic(queue.volume / 5)
     queue.textChannel.send(`**[알림]** 이번 곡은 **${song.title}** 이에옹 (신청자: ${song.username})`)
