@@ -382,7 +382,7 @@ function play(guild, song) {
         })
         .on("error", error => {
             console.error(error)
-            queue.push(queue.songList.shift())
+            queue.songList.push(queue.songList.shift())
             play(guild, queue.songList[0])
         })
     dispatcher.setVolumeLogarithmic(queue.volume / 5)
