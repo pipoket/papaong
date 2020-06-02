@@ -39,8 +39,13 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
         return
     }
 
+    let oldUserChannel = oldMember.channel
     let newUserChannel = newMember.channel
     let botUserChannel = queue.voiceChannel
+
+    if (botUserChannel !== oldUserChannel && botUserChannel !== newUserChannel) {
+        return
+    }
 
     if (botUserChannel.members.size <= 1) {
         queue.textChannel.send(`**[알림]** 아무도 없네옹. 파파옹이도 음악을 멈추고 쉬러갈게옹!`)
@@ -63,7 +68,12 @@ client.on('message', async message => {
     if (message.author.bot) return
     if (!message.content.startsWith(prefix)) return
 
-    let command = message.content.slice(2).split(" ")[0]
+    let command = message.content.slice(2).split(" ")[0] || ""
+    command = command.trim()
+    if (!command) {
+        return
+    }
+
     if (command === 'ㅔ' || command === 'p' || command === 'play') {
         await execute(message)
     } else if (command === 'ㅣ' || command === 'l' || command === 'list') {
