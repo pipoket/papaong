@@ -363,9 +363,19 @@ async function play(guild, song) {
         return
     }
 
+    let stream;
+    try {
+        stream = await ytdlDiscord(song.url)
+    } catch (err) {
+        queue.textChannel.send(`**[오류]** **${song.title}** 재생에 실패했어옹.. (${err})`)
+        queue.songList.push(queue.songList.shift())
+        await play(guild, queue.songList[0])
+        return
+    }
+
     queue.playing = true
     const dispatcher = queue.connection
-        .play(await ytdlDiscord(song.url), {type: 'opus', highWaterMark: 100})
+        .play(stream, {type: 'opus', highWaterMark: 100})
         .on("finish", () => {
             if (queue.playing) {
                 queue.songList.push(queue.songList.shift())
