@@ -95,6 +95,9 @@ client.on('message', async message => {
         exportSong(message)
     } else if (command === 'ㅗ' || command === 'h' || command === 'help') {
         help(message)
+    } else if (command === '정신차려') {
+        await message.channel.send("**[정신]** 정신차리고 다시 오겠다옹.. ㅠㅠ..\n(파파옹이를 재시작합니다. 10초쯤 후에 ;;h를 입력해 동작하는지 확인하세요)")
+	process.exit(0);
     } else if (command === 'destroyLeave!') {
         leaveGuild(message);
     } else {
@@ -424,13 +427,14 @@ async function addSong(message, songUrl, atFirst=false, batchMode=false) {
     }
 
     const song = {
-        id: songInfo.video_id,
-        title: songInfo.title,
+        id: songInfo.videoDetails.videoId,
+        title: songInfo.videoDetails.title,
         userid: message.member.user.id,
         username: message.member.user.username,
-        url: songInfo.video_url,
+        url: songInfo.videoDetails.video_url,
         order: 0,
     }
+    console.log(songInfo)
 
     let isNewSong = await storage.addSong(song)
     if (!isNewSong) {
@@ -478,7 +482,10 @@ async function help(message) {
             + "**;;export**\n"
             + "파파옹이가 가지고 있는 재생 목록을 Pastie 으로 백업해옹\n\n"
             + "**;;h 또는 ;;help**\n"
-            + "이 도움말을 표시해옹")
+            + "이 도움말을 표시해옹\n\n"
+            + "**;;정신차려**\n"
+            + "파파옹이가 진짜 이상하면 이걸로 재시작할 수 있어옹.. 애옹애옹.. ㅠㅠ\n"
+	    + "(파파옹이를 강제로 재시작합니다. 10초 후 ;;help 명령어로 재시작을 확인 후 사용하세요)")
     message.channel.send(embed)
 }
 
