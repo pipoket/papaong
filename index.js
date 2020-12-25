@@ -434,6 +434,7 @@ async function addSong(message, songUrl, atFirst=false, batchMode=false) {
         url: songInfo.videoDetails.video_url,
         order: 0,
     }
+    console.log(songInfo)
 
     let isNewSong = await storage.addSong(song)
     if (!isNewSong) {
