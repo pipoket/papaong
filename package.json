@@ -16,7 +16,7 @@
     "erlpack": "^0.1.3",
     "hastebin": "^0.2.1",
     "libsodium-wrappers": "^0.7.6",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.7",
     "node-persist": "^3.0.5",
     "utf-8-validate": "^5.0.2",
     "ytdl": "^1.4.1",
